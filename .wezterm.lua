@@ -340,9 +340,10 @@ local code_ligature_features = { "calt=1", "clig=1", "liga=1", "ss11=1" }
 config.font_dirs = { wezterm.home_dir .. "/Library/Fonts" }
 config.font_size = 16
 config.cell_width = 0.85
+config.line_height = 1.1
 config.font = wezterm.font_with_fallback({
   -- { family = "Monaco",                weight = "Medium", style = "Normal" },
-  -- { family = "Liga SFMono Nerd Font", weight = "Medium", style = "Normal" },
+  { family = "Liga SFMono Nerd Font", weight = "Medium", style = "Normal" },
   -- { family = "Geist Mono",            weight = "Medium", harfbuzz_features = code_ligature_features },
   { family = "JetBrains Mono",        weight = "Medium", harfbuzz_features = code_ligature_features },
   { family = "IosevkaTerm Nerd Font", weight = "Medium" },
