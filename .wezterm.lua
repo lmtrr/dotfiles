@@ -140,7 +140,7 @@ local config = {}
 if wezterm.config_builder then config = wezterm.config_builder() end
 
 -- Settings
-local theme_name = "melange" -- Change this name to switch both WezTerm and Neovim.
+local theme_name = "github" -- Change this name to switch both WezTerm and Neovim.
 local theme_names = {
   "melange",
   "melange-light",
@@ -149,6 +149,8 @@ local theme_names = {
   "gruvbox",
   "gruvbox-light",
   "darcula",
+  "github",
+  "github-light",
   "tokyonight",
   "tokyonight-night",
   "tokyonight-storm",
@@ -193,6 +195,18 @@ local themes = {
     mode = "dark",
     wezterm = "Darcula",
     nvim = "darcula",
+  },
+  github = {
+    mode = "dark",
+    wezterm = "GitHub Dark Default",
+    nvim = "github",
+    variant = "dark_default",
+  },
+  ["github-light"] = {
+    mode = "light",
+    wezterm = "GitHub Light Default",
+    nvim = "github",
+    variant = "light_default",
   },
   tokyonight = {
     mode = "dark",

@@ -33,6 +33,16 @@ local themes = {
     mode = "dark",
     colorscheme = "darcula",
   },
+  github = {
+    mode = "dark",
+    colorscheme = "github",
+    variant = "dark_default",
+  },
+  ["github-light"] = {
+    mode = "light",
+    colorscheme = "github",
+    variant = "light_default",
+  },
   tokyonight = {
     mode = "dark",
     colorscheme = "tokyonight",
