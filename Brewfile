@@ -11,6 +11,7 @@ tap "fluxcd/tap"
 
 # Core shell/editor/terminal tools.
 brew "git"
+brew "git-lfs"
 brew "curl"
 brew "neovim"
 brew "fzf"
