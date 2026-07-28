@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+set -eu
+
+pid=$2
+field=$4
+
+case "${TMUX_CLIENT_TEST_SCENARIO:-}:$pid:$field" in
+  wezterm:200:command= | other:200:command=) printf '%s\n' "/opt/homebrew/bin/tmux" ;;
+  wezterm:200:ppid= | other:200:ppid=) printf '%s\n' "100" ;;
+  wezterm:100:command=) printf '%s\n' "/Applications/WezTerm.app/Contents/MacOS/wezterm-gui" ;;
+  other:100:command=) printf '%s\n' "-zsh" ;;
+  other:100:ppid=) printf '%s\n' "1" ;;
+  *) exit 1 ;;
+esac

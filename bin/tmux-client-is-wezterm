@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+
+set -eu
+
+if [ "$#" -ne 1 ]; then
+  exit 2
+fi
+
+client_pid=$1
+case "$client_pid" in
+  "" | *[!0-9]*) exit 2 ;;
+esac
+
+while [ "$client_pid" -gt 1 ]; do
+  process_command=$(ps -p "$client_pid" -o command= 2>/dev/null)
+  command_path=${process_command%% *}
+  process_name=${command_path##*/}
+
+  case "$process_name" in
+    wezterm | wezterm-gui) exit 0 ;;
+  esac
+
+  parent_pid=$(ps -p "$client_pid" -o ppid= 2>/dev/null | tr -d '[:space:]')
+  case "$parent_pid" in
+    "" | *[!0-9]*) exit 1 ;;
+  esac
+
+  if [ "$parent_pid" -eq "$client_pid" ]; then
+    exit 1
+  fi
+
+  client_pid=$parent_pid
+done
+
+exit 1

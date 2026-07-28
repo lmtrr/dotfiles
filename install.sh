@@ -96,35 +96,36 @@ install_omz_custom_plugin() {
   git clone "$repo_url" "$plugin_dir"
 }
 
-install_zshrc_symlink() {
-  zshrc_source="$SCRIPT_DIR/.zshrc"
-  zshrc_target="$HOME/.zshrc"
+install_symlink() {
+  source_path=$1
+  target_path=$2
 
-  if [ ! -f "$zshrc_source" ]; then
-    echo "Missing zsh config: $zshrc_source" >&2
+  if [ ! -f "$source_path" ]; then
+    echo "Missing source: $source_path" >&2
     exit 1
   fi
 
-  if [ -L "$zshrc_target" ] && [ "$(readlink "$zshrc_target")" = "$zshrc_source" ]; then
-    echo "$zshrc_target already points to $zshrc_source."
+  if [ -L "$target_path" ] && [ "$(readlink "$target_path")" = "$source_path" ]; then
+    echo "$target_path already points to $source_path."
     return
   fi
 
-  if [ -e "$zshrc_target" ] || [ -L "$zshrc_target" ]; then
-    backup="$HOME/.zshrc.backup.$(date +%Y%m%d%H%M%S)"
+  if [ -e "$target_path" ] || [ -L "$target_path" ]; then
+    backup_base="$target_path.backup.$(date +%Y%m%d%H%M%S)"
+    backup=$backup_base
     suffix=1
 
     while [ -e "$backup" ] || [ -L "$backup" ]; do
-      backup="$HOME/.zshrc.backup.$(date +%Y%m%d%H%M%S).$suffix"
+      backup="$backup_base.$suffix"
       suffix=$((suffix + 1))
     done
 
-    mv "$zshrc_target" "$backup"
-    echo "Backed up existing $zshrc_target to $backup."
+    mv "$target_path" "$backup"
+    echo "Backed up existing $target_path to $backup."
   fi
 
-  ln -s "$zshrc_source" "$zshrc_target"
-  echo "Linked $zshrc_target -> $zshrc_source."
+  ln -s "$source_path" "$target_path"
+  echo "Linked $target_path -> $source_path."
 }
 
 has_libertinus_font() {
@@ -156,7 +157,10 @@ install_libertinus_font() {
   "$BREW_BIN" install --cask font-libertinus
 }
 
-install_zshrc_symlink
+mkdir -p "$HOME/.local/bin"
+install_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
+install_symlink "$SCRIPT_DIR/.tmux.conf" "$HOME/.tmux.conf"
+install_symlink "$SCRIPT_DIR/bin/tmux-client-is-wezterm" "$HOME/.local/bin/tmux-client-is-wezterm"
 install_oh_my_zsh
 install_omz_custom_plugin zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git
 install_homebrew_tools

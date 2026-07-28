@@ -11,6 +11,7 @@ If this doesn't power my workflows, what does?
 Concise manual for these macOS dotfiles.
 
 - [`.zshrc`](.zshrc): shell aliases plus `fzf`, `zoxide`, and `eza` setup.
+- [`.tmux.conf`](.tmux.conf): a `Ctrl+a` prefix that stays inactive in WezTerm.
 - [`.wezterm.lua`](.wezterm.lua): WezTerm panes, tabs, workspaces, launcher, quick-select, and Neovim pane handoff.
 - [`nvim/`](nvim): Neovim setup for LSP, Telescope, Neo-tree, formatting, linting, debugging, tests, sessions, and custom UI.
 
@@ -19,7 +20,10 @@ The Neovim config started from [theovim](https://github.com/theopn/theovim) and 
 ```text
 .
 ├── .zshrc
+├── .tmux.conf
 ├── .wezterm.lua
+├── bin
+│   └── tmux-client-is-wezterm
 ├── install.sh
 └── nvim
     ├── init.lua
@@ -38,7 +42,7 @@ brew bundle --file Brewfile
 ./install.sh
 ```
 
-The [Brewfile](Brewfile) installs the Homebrew-managed CLI tools, apps, and fonts. The installer links `~/.zshrc` to [`.zshrc`](.zshrc), backs up an existing `~/.zshrc`, installs Oh My Zsh helpers, and keeps a few shell-tool/font checks for direct installer usage.
+The [Brewfile](Brewfile) installs the Homebrew-managed CLI tools, apps, and fonts. The installer links `~/.zshrc`, `~/.tmux.conf`, and the tmux client helper to their tracked files, backs up existing files, installs Oh My Zsh helpers, and keeps a few shell-tool/font checks for direct installer usage.
 
 ### Shell
 
@@ -75,6 +79,10 @@ Leader key: `Ctrl+a`. Press it, then press a command key within 1000 ms.
 Launch menu entries include `Home`, `Dotfiles`, and `Neovim Config`.
 
 Suggested flow: open WezTerm, jump with `Ctrl+a w`, create a project workspace with `Ctrl+a p`, split with `Ctrl+a s/v`, and move between terminal panes and Neovim with `Alt+h/j/k/l`.
+
+### tmux
+
+[`.tmux.conf`](.tmux.conf) uses the same `Ctrl+a` prefix as WezTerm. Outside WezTerm, press `Ctrl+a Ctrl+a` to send `Ctrl+a` to the active pane. Inside WezTerm, tmux passes `Ctrl+a` through without activating its prefix so WezTerm owns the leader key. The active client's process tree determines the behavior, so it remains correct when terminals share a tmux server.
 
 ### Neovim
 

@@ -11,6 +11,7 @@ tap "fluxcd/tap"
 
 # Core shell/editor/terminal tools.
 brew "git"
+brew "git-lfs"
 brew "curl"
 brew "neovim"
 brew "fzf"
@@ -20,6 +21,7 @@ brew "git-delta"
 brew "ripgrep"
 brew "fd"
 brew "tree-sitter"
+brew "tmux"
 
 # Language runtimes and build tools used by Neovim plugins, Mason, and ftplugins.
 brew "node"
