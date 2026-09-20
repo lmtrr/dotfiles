@@ -60,13 +60,20 @@ local function load_theme(wezterm_config)
 end
 
 local wezterm_config = read_file(wezterm_path)
-local dark_theme = load_theme(wezterm_config):get()
+local dark_config = wezterm_config:gsub(
+  'local theme_name = "[%w%-]+"',
+  'local theme_name = "github"',
+  1
+)
+assert(dark_config:find('local theme_name = "github"', 1, true))
+
+local dark_theme = load_theme(dark_config):get()
 assert(dark_theme.name == "github")
 assert(dark_theme.mode == "dark")
 assert(dark_theme.colorscheme == "github")
 assert(dark_theme.variant == "dark_default")
 
-local light_config = wezterm_config:gsub(
+local light_config = dark_config:gsub(
   'local theme_name = "github"',
   'local theme_name = "github-light"',
   1

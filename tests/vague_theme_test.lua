@@ -65,7 +65,7 @@ local vague_config = wezterm_config:gsub(
   'local theme_name = "vague"',
   1
 )
-assert(vague_config ~= wezterm_config)
+assert(vague_config:find('local theme_name = "vague"', 1, true))
 
 local vague_theme = load_theme(vague_config):get()
 assert(vague_theme.name == "vague")

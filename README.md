@@ -14,7 +14,7 @@ Concise manual for these macOS dotfiles.
 - [`.wezterm.lua`](.wezterm.lua): WezTerm panes, tabs, workspaces, launcher, quick-select, and Neovim pane handoff.
 - [`nvim/`](nvim): Neovim setup for LSP, Telescope, Neo-tree, formatting, linting, debugging, tests, sessions, and custom UI.
 
-The Neovim config started from [theovim](https://github.com/theopn/theovim) and is now customized. WezTerm and Neovim both use GitHub Dark Default.
+The Neovim config started from [theovim](https://github.com/theopn/theovim) and is now customized. WezTerm and Neovim both use Vague.
 
 ```text
 .
@@ -53,8 +53,8 @@ The [Brewfile](Brewfile) installs the Homebrew-managed CLI tools, apps, and font
 Defaults:
 
 - shell: `zsh -l`
-- theme: `GitHub Dark Default`
-- variants: `github`, `github-light`
+- theme: `Vague`
+- variants: `vague` (one dark palette, no light variant)
 - font fallback: JetBrains Mono Nerd Font, IosevkaTerm Nerd Font, Symbols Nerd Font Mono, Menlo
 - 90% opacity, macOS blur, resize-only decorations
 - status: workspace/key table/leader on the left, cwd/process/time on the right
