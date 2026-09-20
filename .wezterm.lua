@@ -149,6 +149,7 @@ local theme_names = {
   "gruvbox",
   "gruvbox-light",
   "darcula",
+  "vague",
   "github",
   "github-light",
   "tokyonight",
@@ -195,6 +196,11 @@ local themes = {
     mode = "dark",
     wezterm = "Darcula",
     nvim = "darcula",
+  },
+  vague = {
+    mode = "dark",
+    wezterm = "Vague",
+    nvim = "vague",
   },
   github = {
     mode = "dark",
