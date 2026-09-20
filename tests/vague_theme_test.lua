@@ -1,7 +1,7 @@
 local repo_root = arg[0]:match("^(.*)/tests/[^/]+$") or "."
 local wezterm_path = repo_root .. "/.wezterm.lua"
 local theme_path = repo_root .. "/nvim/lua/config/theme.lua"
-local plugin_path = repo_root .. "/nvim/lua/plugins/github.lua"
+local plugin_path = repo_root .. "/nvim/lua/plugins/vague.lua"
 
 local function read_file(path)
   local file = assert(io.open(path, "r"))
@@ -60,46 +60,44 @@ local function load_theme(wezterm_config)
 end
 
 local wezterm_config = read_file(wezterm_path)
-local dark_config = wezterm_config:gsub(
+local vague_config = wezterm_config:gsub(
   'local theme_name = "[%w%-]+"',
-  'local theme_name = "github"',
+  'local theme_name = "vague"',
   1
 )
-assert(dark_config:find('local theme_name = "github"', 1, true))
+assert(vague_config:find('local theme_name = "vague"', 1, true))
 
-local dark_theme = load_theme(dark_config):get()
-assert(dark_theme.name == "github")
-assert(dark_theme.mode == "dark")
-assert(dark_theme.colorscheme == "github")
-assert(dark_theme.variant == "dark_default")
+local vague_theme = load_theme(vague_config):get()
+assert(vague_theme.name == "vague")
+assert(vague_theme.mode == "dark")
+assert(vague_theme.colorscheme == "vague")
+assert(vague_theme.variant == nil)
 
-local light_config = dark_config:gsub(
-  'local theme_name = "github"',
-  'local theme_name = "github-light"',
-  1
-)
-local light_theme = load_theme(light_config):get()
-assert(light_theme.name == "github-light")
-assert(light_theme.mode == "light")
-assert(light_theme.colorscheme == "github")
-assert(light_theme.variant == "light_default")
+-- The theme table above falls back to nvim/lua/config/theme.lua, so assert the WezTerm
+-- registration separately instead of relying on the resolved theme.
+local vague_block = assert(wezterm_config:match("\n  vague = {(.-)\n  },"))
+assert(vague_block:find('mode = "dark"', 1, true))
+assert(vague_block:find('wezterm = "Vague"', 1, true))
+assert(vague_block:find('nvim = "vague"', 1, true))
+assert(wezterm_config:match('local theme_names = {(.-)\n}'):find('"vague"', 1, true))
+assert(read_file(repo_root .. "/wezterm/colors/vague.toml"):find('name = "Vague"', 1, true))
 
-local selected_theme = dark_theme
+local is_transparent = true
 local setup_options
 local colorscheme
 
 package.loaded["config.theme"] = {
   get = function()
-    return selected_theme
+    return vague_theme
   end,
   is_colorscheme = function(name)
-    return name == "github"
+    return name == "vague"
   end,
   is_transparent = function()
-    return selected_theme.mode == "dark"
+    return is_transparent
   end,
 }
-package.loaded["github-theme"] = {
+package.loaded["vague"] = {
   setup = function(options)
     setup_options = options
   end,
@@ -114,21 +112,17 @@ _G.vim = {
 }
 
 local plugin = dofile(plugin_path)
-assert(plugin[1] == "projekt0n/github-nvim-theme")
+assert(plugin[1] == "vague-theme/vague.nvim")
 assert(plugin.enabled)
+assert(plugin.lazy == false)
 
 plugin.config()
 assert(vim.o.background == "dark")
-assert(setup_options.options.transparent)
-assert(setup_options.options.terminal_colors)
-assert(colorscheme == "github_dark_default")
+assert(setup_options.transparent)
+assert(colorscheme == "vague")
 
-selected_theme = light_theme
+is_transparent = false
 plugin.config()
-assert(vim.o.background == "light")
-assert(not setup_options.options.transparent)
-assert(colorscheme == "github_light_default")
-
-selected_theme = { mode = "dark", variant = "unknown" }
-plugin.config()
-assert(colorscheme == "github_dark_default")
+assert(vim.o.background == "dark")
+assert(not setup_options.transparent)
+assert(colorscheme == "vague")

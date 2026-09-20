@@ -33,6 +33,10 @@ local themes = {
     mode = "dark",
     colorscheme = "darcula",
   },
+  vague = {
+    mode = "dark",
+    colorscheme = "vague",
+  },
   github = {
     mode = "dark",
     colorscheme = "github",
