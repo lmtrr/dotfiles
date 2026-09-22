@@ -367,7 +367,7 @@ config.background = {
     height = "Cover",
 
     -- Opacity of only this image layer
-    opacity = 0.35,
+    opacity = 0.15,
 
     -- Optional: darken image for readability
     hsb = {
@@ -385,9 +385,9 @@ config.window_close_confirmation = "AlwaysPrompt"
 config.scrollback_lines = 3000
 config.default_workspace = "main"
 config.launch_menu = {
-  { label = "Home",          cwd = wezterm.home_dir,                     args = { zsh_path, "-l" } },
-  { label = "Dotfiles",      cwd = dotfiles_dir,                         args = { zsh_path, "-l" } },
-  { label = "Neovim Config", cwd = dotfiles_dir .. "/nvim",              args = { zsh_path, "-l" } },
+  { label = "Home",          cwd = wezterm.home_dir,        args = { zsh_path, "-l" } },
+  { label = "Dotfiles",      cwd = dotfiles_dir,            args = { zsh_path, "-l" } },
+  { label = "Neovim Config", cwd = dotfiles_dir .. "/nvim", args = { zsh_path, "-l" } },
 }
 config.macos_window_background_blur = 50
 
