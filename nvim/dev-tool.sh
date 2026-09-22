@@ -8,8 +8,13 @@ generate_commit_list() {
     grep -m 5 -i 'mErGe' | \
     fzf --reverse --border=rounded --cycle --height=30% --header='Pick the Merge Commit Before the New Version' | \
     cut -d' ' -f1)
+  if [ -z "$prev_commit" ]; then
+    echo "No merge commit selected." >&2
+    return 1
+  fi
+
   echo "Generating the list of commits since ${prev_commit}..."
-  git log ${prev_commit}.. --pretty="- [%h] %s"
+  git log "${prev_commit}".. --pretty="- [%h] %s"
 
 }
 

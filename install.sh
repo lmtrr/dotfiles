@@ -96,35 +96,36 @@ install_omz_custom_plugin() {
   git clone "$repo_url" "$plugin_dir"
 }
 
-install_zshrc_symlink() {
-  zshrc_source="$SCRIPT_DIR/.zshrc"
-  zshrc_target="$HOME/.zshrc"
+install_symlink() {
+  source=$1
+  target=$2
 
-  if [ ! -f "$zshrc_source" ]; then
-    echo "Missing zsh config: $zshrc_source" >&2
+  if [ ! -e "$source" ]; then
+    echo "Missing config: $source" >&2
     exit 1
   fi
 
-  if [ -L "$zshrc_target" ] && [ "$(readlink "$zshrc_target")" = "$zshrc_source" ]; then
-    echo "$zshrc_target already points to $zshrc_source."
+  if [ -L "$target" ] && [ "$(readlink "$target")" = "$source" ]; then
+    echo "$target already points to $source."
     return
   fi
 
-  if [ -e "$zshrc_target" ] || [ -L "$zshrc_target" ]; then
-    backup="$HOME/.zshrc.backup.$(date +%Y%m%d%H%M%S)"
+  if [ -e "$target" ] || [ -L "$target" ]; then
+    backup="$target.backup.$(date +%Y%m%d%H%M%S)"
     suffix=1
 
     while [ -e "$backup" ] || [ -L "$backup" ]; do
-      backup="$HOME/.zshrc.backup.$(date +%Y%m%d%H%M%S).$suffix"
+      backup="$target.backup.$(date +%Y%m%d%H%M%S).$suffix"
       suffix=$((suffix + 1))
     done
 
-    mv "$zshrc_target" "$backup"
-    echo "Backed up existing $zshrc_target to $backup."
+    mv "$target" "$backup"
+    echo "Backed up existing $target to $backup."
   fi
 
-  ln -s "$zshrc_source" "$zshrc_target"
-  echo "Linked $zshrc_target -> $zshrc_source."
+  mkdir -p "$(dirname -- "$target")"
+  ln -s "$source" "$target"
+  echo "Linked $target -> $source."
 }
 
 has_libertinus_font() {
@@ -156,7 +157,10 @@ install_libertinus_font() {
   "$BREW_BIN" install --cask font-libertinus
 }
 
-install_zshrc_symlink
+install_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
+install_symlink "$SCRIPT_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
+install_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
+install_symlink "$SCRIPT_DIR/nvim" "${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
 install_oh_my_zsh
 install_omz_custom_plugin zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git
 install_homebrew_tools

@@ -22,14 +22,6 @@ M.dependencies = {
 }
 
 M.config = function()
-  -- Sets the LSP UI look
-  vim.lsp.handlers["textDocument/hover"] = function(err, result, ctx, config)
-    vim.lsp.handlers.hover(err, result, ctx, vim.tbl_deep_extend("force", config or {}, { border = "rounded", title = "Hover" }))
-  end
-  vim.lsp.handlers["textDocument/signatureHelp"] = function(err, result, ctx, config)
-    vim.lsp.handlers.signature_help(err, result, ctx, vim.tbl_deep_extend("force", config or {}, { border = "rounded", title = "Signature Help" }))
-  end
-
   -- Makes autocmd for LSP functionalities
   local theovim_lsp_config_group = vim.api.nvim_create_augroup("TheovimLspConfig", { clear = true, })
 
@@ -66,6 +58,9 @@ M.config = function()
       map("<leader>rn", vim.lsp.buf.rename, "[R]e[n]ame")
       map("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction")
       map("gD", vim.lsp.buf.declaration, "[G]o [D]eclaration")
+      map("K", function() vim.lsp.buf.hover({ border = "rounded", title = "Hover" }) end, "Hover")
+      vim.keymap.set("i", "<C-k>", function() vim.lsp.buf.signature_help({ border = "rounded", title = "Signature Help" }) end,
+        { buffer = event.buf, desc = "LSP: Signature help" })
 
       -- Creates an autocmd to highlight the symbol under the cursor
       local client = vim.lsp.get_client_by_id(event.data.client_id)

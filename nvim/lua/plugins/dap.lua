@@ -7,7 +7,7 @@ return {
     "nvim-neotest/nvim-nio",
     "rcarriga/nvim-dap-ui",
     "theHamsta/nvim-dap-virtual-text",
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
   },
   keys = {
     {

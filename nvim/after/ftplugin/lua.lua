@@ -42,7 +42,7 @@ local function run_lua()
   vim.wo[win].winblend = 50      --> 80 for transparency
 
   -- Execute the command
-  vim.fn.termopen(cmd)
+  vim.fn.jobstart(cmd, { term = true })
 end
 
 vim.api.nvim_create_user_command("RunLua", run_lua, { nargs = 0 })

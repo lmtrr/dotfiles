@@ -19,6 +19,20 @@ local fn = vim.fn
 
 local theovimlogo = vim.g.have_nerd_font and "Justin  " or "JustinVim"
 
+local inactive_name_limit = 24
+local ellipsis = "..."
+
+--- Shortens a name that is longer than the limit and appends an ellipsis
+---@param name string name to shorten
+---@param limit number maximum number of characters to keep
+---@return string name shortened name, or the original name when it is short enough
+function M.truncate_name(name, limit)
+  if #name <= limit then
+    return name
+  end
+  return name:sub(1, limit - #ellipsis) .. ellipsis
+end
+
 --- Returns the Lua list of listed buffers
 ---@return table listed_buf list of buffers that are loaded, valid, and listed
 local function get_listed_bufs()
@@ -64,10 +78,8 @@ M.build = function()
 
     -- Current name of the tab
     local display_curr_bufname = fn.fnamemodify(curr_bufname, ":t")
-    -- Limiting inactive tab name to n character + 3 (... that will be appended)
-    local bufname_len_limit = 24
-    if i ~= curr_tabnum and string.len(display_curr_bufname) > bufname_len_limit + 3 then
-      display_curr_bufname = string.sub(display_curr_bufname, 1, 10) .. "..."
+    if i ~= curr_tabnum then
+      display_curr_bufname = M.truncate_name(display_curr_bufname, inactive_name_limit)
     end
     -- Append formatted bufname
     if display_curr_bufname ~= "" then

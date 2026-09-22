@@ -87,7 +87,7 @@ local function workspace_icon(name)
   local start_index = (hash_string(name or "") % icon_count) + 1
 
   for offset = 0, icon_count - 1 do
-    local icon_name = workspace_icon_names[((start_index + offset - 2) % icon_count) + 1]
+    local icon_name = workspace_icon_names[((start_index + offset - 1) % icon_count) + 1]
     local icon = wezterm.nerdfonts[icon_name]
     if icon and icon ~= "" then
       return icon
@@ -140,6 +140,7 @@ local config = {}
 if wezterm.config_builder then config = wezterm.config_builder() end
 
 -- Settings
+local dotfiles_dir = wezterm.home_dir .. "/dotfiles"
 local theme_name = "vague" -- Change this name to switch both WezTerm and Neovim.
 local theme_names = {
   "melange",
@@ -305,7 +306,7 @@ local tab_bar_palette = theme_mode == "light"
 
 config.default_prog = { zsh_path, "-l" }
 
-config.color_scheme_dirs = { wezterm.home_dir .. "/dotfiles/wezterm/colors" }
+config.color_scheme_dirs = { dotfiles_dir .. "/wezterm/colors" }
 config.color_scheme = selected_theme.wezterm
 config.colors = {
   tab_bar = {
@@ -360,7 +361,7 @@ config.font = wezterm.font_with_fallback({
 config.background = {
   {
     source = {
-      File = wezterm.config_dir .. "assets/fletschhorn.jpg"
+      File = dotfiles_dir .. "/assets/fletschhorn.jpg"
     },
     width = "Cover",
     height = "Cover",
@@ -385,17 +386,15 @@ config.scrollback_lines = 3000
 config.default_workspace = "main"
 config.launch_menu = {
   { label = "Home",          cwd = wezterm.home_dir,                     args = { zsh_path, "-l" } },
-  { label = "Dotfiles",      cwd = wezterm.home_dir .. "/dotfiles",      args = { zsh_path, "-l" } },
-  { label = "Neovim Config", cwd = wezterm.home_dir .. "/dotfiles/nvim", args = { zsh_path, "-l" } },
+  { label = "Dotfiles",      cwd = dotfiles_dir,                         args = { zsh_path, "-l" } },
+  { label = "Neovim Config", cwd = dotfiles_dir .. "/nvim",              args = { zsh_path, "-l" } },
 }
 config.macos_window_background_blur = 50
 
+config.window_decorations = "RESIZE"
 if is_macos then
   -- Two-display fullscreen handling is more reliable with the native macOS Space.
   config.native_macos_fullscreen_mode = true
-  config.window_decorations = "RESIZE"
-else
-  config.window_decorations = "RESIZE"
 end
 
 -- Dim inactive panes

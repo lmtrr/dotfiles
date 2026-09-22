@@ -58,6 +58,7 @@ local olivers = {
 math.randomseed(os.time())
 local header = olivers[math.random(#olivers)]
 local uv = vim.uv or vim.loop
+local highlight_ns = vim.api.nvim_create_namespace("TheovimDashboard")
 
 local logo = {
   [[     _           _   _      ]],
@@ -185,10 +186,10 @@ local render = function()
   -- Setting highlights --
 
   for i = hdr_start_idx, hdr_start_idx + #header - 2 do                       --> Ignore last two empty lines
-    vim.api.nvim_buf_add_highlight(buf, -1, "MiniStarterFooter", i, 0, -1)    --> -1 for no namespace
+    vim.api.nvim_buf_set_extmark(buf, highlight_ns, i - 1, 0, { line_hl_group = "MiniStarterFooter" })
   end
   for i = hdr_start_idx + #header - 2, hdr_start_idx + #header + #logo - 2 do --> Again, -2 because of empty lines
-    vim.api.nvim_buf_add_highlight(buf, -1, "MiniStarterHeader", i, 0, -1)
+    vim.api.nvim_buf_set_extmark(buf, highlight_ns, i - 1, 0, { line_hl_group = "MiniStarterHeader" })
   end
 
   -- The end --

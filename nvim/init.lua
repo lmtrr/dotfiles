@@ -404,7 +404,7 @@ if vim.g.neovide then
   vim.g.neovide_hide_mouse_when_typing = true
   vim.g.neovide_cursor_vfx_mode = "railgun"
 
-  vim.g.neovide_transparency = 0.69
+  vim.g.neovide_opacity = 0.69
   vim.g.neovide_floating_blur_amount_x = 2.0
   vim.g.neovide_floating_blur_amount_y = 2.0
 end

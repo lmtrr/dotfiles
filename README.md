@@ -38,7 +38,7 @@ brew bundle --file Brewfile
 ./install.sh
 ```
 
-The [Brewfile](Brewfile) installs the Homebrew-managed CLI tools, apps, and fonts. The installer links `~/.zshrc` to [`.zshrc`](.zshrc), backs up an existing `~/.zshrc`, installs Oh My Zsh helpers, and keeps a few shell-tool/font checks for direct installer usage.
+The [Brewfile](Brewfile) installs the Homebrew-managed CLI tools, apps, and fonts. The installer links `~/.zshrc`, `~/.wezterm.lua`, `~/.gitconfig`, and `~/.config/nvim` to [`.zshrc`](.zshrc), [`.wezterm.lua`](.wezterm.lua), [`.gitconfig`](.gitconfig), and [`nvim`](nvim) in this repo. It backs up an existing file or directory at each target, installs Oh My Zsh helpers, and keeps a few shell-tool/font checks for direct installer usage.
 
 ### Shell
 
@@ -153,6 +153,10 @@ Notes:
 - Go formatters that are usually installed outside Homebrew: `go install mvdan.cc/gofumpt@latest` and `go install golang.org/x/tools/cmd/goimports@latest`.
 - Treesitter downloads newly added parsers on first start after updates.
 - `nvim-java` installs jdtls, the Java debug adapter, and test bundles through Mason on first use.
+
+### Tests
+
+Run `tests/run.sh` from the repo root. It uses `lua` if you have it, or `luajit`.
 
 ### Customize
 
