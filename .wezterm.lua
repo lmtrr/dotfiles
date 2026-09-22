@@ -358,7 +358,8 @@ config.font = wezterm.font_with_fallback({
   { family = "Menlo" },
 })
 
-config.background = {
+-- Only shown in fullscreen, see sync_fullscreen_background.
+local fullscreen_background = {
   {
     source = {
       File = dotfiles_dir .. "/assets/fletschhorn.jpg"
@@ -377,6 +378,20 @@ config.background = {
     }
   }
 }
+
+local function sync_fullscreen_background(window)
+  local is_full_screen = window:get_dimensions().is_full_screen
+  local overrides = window:get_config_overrides() or {}
+  local has_background = overrides.background ~= nil
+  if is_full_screen == has_background then
+    return
+  end
+
+  overrides.background = is_full_screen and fullscreen_background or nil
+  window:set_config_overrides(overrides)
+end
+
+wezterm.on("window-resized", sync_fullscreen_background)
 
 local opacity = 0.90
 local is_macos = wezterm.target_triple:find("apple") ~= nil
@@ -622,6 +637,7 @@ wezterm.on("update-status", function(window, pane)
   local stat = active_workspace
   local stat_icon = workspace_icon(active_workspace)
   local stat_color = "#C34043"
+  sync_fullscreen_background(window)
   -- It's a little silly to have workspace name all the time
   -- Utilize this to display LDR or current key table name
   local overrides = window:get_config_overrides() or {}

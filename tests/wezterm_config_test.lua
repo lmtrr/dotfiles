@@ -17,6 +17,8 @@ local function action_stub()
   })
 end
 
+local event_handlers = {}
+
 package.preload["wezterm"] = function()
   return {
     home_dir = home_dir,
@@ -26,7 +28,7 @@ package.preload["wezterm"] = function()
     action_callback = function(fn) return fn end,
     format = function(_) return "" end,
     nerdfonts = setmetatable({}, { __index = function() return "x" end }),
-    on = function() end,
+    on = function(event, handler) event_handlers[event] = handler end,
     strftime = function() return "" end,
     font_with_fallback = function(fonts) return fonts end,
     config_builder = nil,
@@ -37,10 +39,40 @@ local config = dofile(repo_root .. "/.wezterm.lua")
 
 local checkout_hint = "repo must be checked out at " .. home_dir .. "/dotfiles, got " .. repo_root
 
+assert(config.background == nil, "background image must only be applied in fullscreen")
+
+local function fake_window(is_full_screen)
+  local window = { overrides = {}, override_calls = 0, is_full_screen = is_full_screen }
+  function window:get_dimensions() return { is_full_screen = self.is_full_screen } end
+  function window:get_config_overrides() return self.overrides end
+  function window:set_config_overrides(overrides)
+    self.overrides = overrides
+    self.override_calls = self.override_calls + 1
+  end
+  return window
+end
+
+local on_resized = assert(event_handlers["window-resized"], "window-resized handler is missing")
+
+local windowed = fake_window(false)
+on_resized(windowed)
+assert(windowed.overrides.background == nil)
+assert(windowed.override_calls == 0)
+
+local fullscreen = fake_window(true)
+on_resized(fullscreen)
 local background_path = repo_root .. "/assets/fletschhorn.jpg"
-assert(config.background[1].source.File == background_path, checkout_hint)
+assert(fullscreen.overrides.background[1].source.File == background_path, checkout_hint)
 local background_file = assert(io.open(background_path, "r"), "background image is missing")
 background_file:close()
+
+on_resized(fullscreen)
+assert(fullscreen.override_calls == 1, "overrides must not be reapplied when state is unchanged")
+
+fullscreen.is_full_screen = false
+on_resized(fullscreen)
+assert(fullscreen.overrides.background == nil)
+assert(fullscreen.override_calls == 2)
 
 assert(config.color_scheme_dirs[1] == repo_root .. "/wezterm/colors", checkout_hint)
 
