@@ -344,15 +344,16 @@ config.set_environment_variables = {
 }
 
 local code_ligature_features = { "calt=1", "clig=1", "liga=1", "ss11=1" }
+local no_ligature_features = { "calt=0", "clig=0", "liga=0" }
 config.font_dirs = { wezterm.home_dir .. "/Library/Fonts" }
 config.font_size = 16
 config.cell_width = 0.85
 config.line_height = 1.1
 config.font = wezterm.font_with_fallback({
-  { family = "Anthrosevka Mono",      weight = "Medium", style = "Normal" },
-  { family = "Liga SFMono Nerd Font", weight = "Medium", style = "Normal" },
-  -- { family = "Geist Mono",            weight = "Medium", harfbuzz_features = code_ligature_features },
-  { family = "JetBrains Mono",        weight = "Medium", harfbuzz_features = code_ligature_features },
+  { family = "Anthrosevka Mono",      weight = "Regular", style = "Normal",                          harfbuzz_features = no_ligature_features },
+  -- { family = "Liga SFMono Nerd Font", weight = "Regular", style = "Normal",                          harfbuzz_features = code_ligature_features },
+  -- { family = "Geist Mono",            weight = "Medium",  harfbuzz_features = code_ligature_features },
+  { family = "JetBrains Mono",        weight = "Regular", harfbuzz_features = code_ligature_features },
   { family = "IosevkaTerm Nerd Font", weight = "Medium" },
   { family = "Symbols Nerd Font Mono" },
   { family = "Menlo" },
