@@ -51,7 +51,6 @@ return {
       c = { "clang_format" },
       cpp = { "clang_format" },
       go = { "gofumpt", "goimports", "gofmt" },
-      java = { "google_java_format" },
       lua = { "stylua" },
       markdown = { "prettier" },
       python = { "ruff_organize_imports", "ruff_format" },
