@@ -359,42 +359,43 @@ config.font = wezterm.font_with_fallback({
   { family = "Menlo" },
 })
 
--- Only shown in fullscreen, see sync_fullscreen_background.
-local fullscreen_background = {
-  {
-    source = {
-      File = dotfiles_dir .. "/assets/fletschhorn.jpg"
+local opacity = 0.90
+
+-- Native fullscreen has no desktop behind the window, so a blurred image replaces the macOS blur.
+local function fullscreen_background(background_color)
+  return {
+    {
+      source = { File = dotfiles_dir .. "/assets/fletschhorn_blur.jpg" },
+      width = "Cover",
+      height = "Cover",
+      opacity = 1.0,
     },
-    width = "Cover",
-    height = "Cover",
-
-    -- Opacity of only this image layer
-    opacity = 0.15,
-
-    -- Optional: darken image for readability
-    hsb = {
-      brightness = 0.35,
-      hue = 1.0,
-      saturation = 1.0,
-    }
+    {
+      source = { Color = background_color },
+      width = "100%",
+      height = "100%",
+      opacity = opacity,
+    },
   }
-}
+end
 
 local function sync_fullscreen_background(window)
-  local is_full_screen = window:get_dimensions().is_full_screen
   local overrides = window:get_config_overrides() or {}
-  local has_background = overrides.background ~= nil
-  if is_full_screen == has_background then
+  local current_color = overrides.background and overrides.background[2].source.Color
+  local target_color = nil
+  if window:get_dimensions().is_full_screen then
+    target_color = window:effective_config().resolved_palette.background
+  end
+  if current_color == target_color then
     return
   end
 
-  overrides.background = is_full_screen and fullscreen_background or nil
+  overrides.background = target_color and fullscreen_background(target_color) or nil
   window:set_config_overrides(overrides)
 end
 
 wezterm.on("window-resized", sync_fullscreen_background)
 
-local opacity = 0.90
 local is_macos = wezterm.target_triple:find("apple") ~= nil
 config.window_background_opacity = opacity
 config.window_close_confirmation = "AlwaysPrompt"
