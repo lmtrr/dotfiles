@@ -270,38 +270,52 @@ if not selected_theme then
   error("Invalid theme_name: " .. tostring(theme_name) .. ". Expected one of: " .. table.concat(theme_names, ", "))
 end
 local theme_mode = selected_theme.mode
+-- Tab bar colors. Semantic colors show state: ok, error, running, remote, leader.
+-- pill_bg is the background of the status blocks; divider is the │ between items.
 local tab_bar_palette = theme_mode == "light"
     and {
-      bar_bg = "#e9dfd2",
-      inactive_bg = "#d9cec2",
-      inactive_fg = "#6f6259",
-      hover_bg = "#cbbdaf",
-      hover_fg = "#292522",
-      active_bg = "#78997a",
-      active_fg = "#fbf1e8",
-      accent = "#b85f5f",
-      alert = "#b85f5f",
-      cwd = "#4f7f65",
-      command = "#9a6a3f",
-      clock = "#5f6f95",
-      status_bg = "#d9cec2",
-      status_fg = "#403a36",
+      bar_bg = "#e9e9ec",
+      pill_bg = "#dcdce2",
+      divider = "#a8aab4",
+      inactive_bg = "#e9e9ec",
+      inactive_fg = "#5f6272",
+      hover_bg = "#dcdce2",
+      hover_fg = "#1f2335",
+      active_bg = "#ffffff",
+      active_fg = "#1f2335",
+      accent = "#2e7de9",
+      text = "#1f2335",
+      muted = "#5f6272",
+      ok = "#387068",
+      err = "#c64343",
+      warn = "#8c6c3e",
+      remote = "#b15c00",
+      remote_bg = "#f6e1cc",
+      leader = "#7847bd",
+      git = "#7847bd",
+      on_color = "#ffffff",
     }
     or {
-      bar_bg = "#171c1f",
-      inactive_bg = "#232a2e",
-      inactive_fg = "#96b4aa",
-      hover_bg = "#313b40",
-      hover_fg = "#f8f9e8",
-      active_bg = "#cae0a7",
-      active_fg = "#171c1f",
-      accent = "#f5d098",
-      alert = "#f57f82",
-      cwd = "#addeb9",
-      command = "#f5d098",
-      clock = "#b2cfed",
-      status_bg = "#232a2e",
-      status_fg = "#f8f9e8",
+      bar_bg = "#0f1012",
+      pill_bg = "#1f2127",
+      divider = "#4a4e58",
+      inactive_bg = "#0f1012",
+      inactive_fg = "#8b8f98",
+      hover_bg = "#1f2127",
+      hover_fg = "#e4e4e7",
+      active_bg = "#2b2f38",
+      active_fg = "#e4e4e7",
+      accent = "#7aa2f7",
+      text = "#e4e4e7",
+      muted = "#8b8f98",
+      ok = "#9ece6a",
+      err = "#f7768e",
+      warn = "#e0af68",
+      remote = "#ff9e64",
+      remote_bg = "#3a2616",
+      leader = "#bb9af7",
+      git = "#bb9af7",
+      on_color = "#0f1012",
     }
 
 config.default_prog = { zsh_path, "-l" }
@@ -399,7 +413,7 @@ wezterm.on("window-resized", sync_fullscreen_background)
 local is_macos = wezterm.target_triple:find("apple") ~= nil
 config.window_background_opacity = opacity
 config.window_close_confirmation = "AlwaysPrompt"
-config.scrollback_lines = 3000
+config.scrollback_lines = 50000
 config.default_workspace = "main"
 config.launch_menu = {
   { label = "Home",          cwd = wezterm.home_dir,        args = { zsh_path, "-l" } },
@@ -416,9 +430,43 @@ end
 
 -- Dim inactive panes
 config.inactive_pane_hsb = {
-  saturation = 0.24,
-  brightness = 0.5
+  saturation = 0.6,
+  brightness = 0.75,
 }
+
+-- Quick select: extra patterns for development output.
+config.quick_select_patterns = {
+  [=[[\w./@~-]+\.[A-Za-z0-9]+:\d+(?::\d+)?]=], -- file.ext:line(:col)
+  [=[[\w./-]+\.py::[\w\[\]-]+]=],               -- pytest node ids
+  [=[\b[A-Z][A-Z0-9]+-\d+\b]=],                 -- ticket ids, for example API-231
+}
+
+local open_patterns = {
+  [=[https?://[^\s"'<>()\]]+]=],
+  [=[[\w./@~-]+\.[A-Za-z0-9]+:\d+(?::\d+)?]=],
+  [=[(?:~/|\.{1,2}/|/)?[\w.@-]+(?:/[\w.@-]+)+]=],
+}
+
+-- Open the picked text: a URL in the browser, a path (with :line) in nvim in a split.
+local function open_selection(window, pane)
+  local text = trim(window:get_selection_text_for_pane(pane))
+  window:perform_action(act.ClearSelection, pane)
+  if text == "" then
+    return
+  end
+  if text:match("^https?://") then
+    wezterm.open_with(text)
+    return
+  end
+  local path, line = text:match("^(.-):(%d+)")
+  path = path or text
+  path = path:gsub("^~/", wezterm.home_dir .. "/")
+  pane:split {
+    direction = "Right",
+    cwd = cwd_to_path(pane:get_current_working_dir()),
+    args = { zsh_path, "-lc", 'exec nvim "$@"', "nvim", "+" .. (line or "1"), path },
+  }
+end
 
 -- Keys
 config.leader = { key = "a", mods = "CTRL", timeout_milliseconds = 1000 }
@@ -428,6 +476,15 @@ config.keys = {
   { key = "c",          mods = "LEADER",      action = act.ActivateCopyMode },
   { key = "phys:Space", mods = "LEADER",      action = act.ActivateCommandPalette },
   { key = "f",          mods = "LEADER",      action = act.QuickSelect },
+  {
+    key = "F",
+    mods = "LEADER|SHIFT",
+    action = act.QuickSelectArgs {
+      label = "open",
+      patterns = open_patterns,
+      action = wezterm.action_callback(open_selection),
+    },
+  },
   { key = "/",          mods = "LEADER",      action = act.Search("CurrentSelectionOrEmptyString") },
   { key = "[",          mods = "SUPER",       action = send_if_nvim("[", "ALT") },
   { key = "]",          mods = "SUPER",       action = send_if_nvim("]", "ALT") },
@@ -548,100 +605,247 @@ config.key_tables = {
 config.use_fancy_tab_bar = false
 config.show_new_tab_button_in_tab_bar = false
 config.switch_to_last_active_tab_when_closing_tab = true
-config.tab_max_width = 28
+config.tab_max_width = 32
 config.status_update_interval = 1000
 config.tab_bar_at_bottom = false
+
+-- Shell integration (wezterm/shell-integration.zsh) sets these pane user vars:
+--   WEZTERM_CMD          last command line
+--   WEZTERM_CMD_STATUS   "running" or the exit code
+--   WEZTERM_CMD_DURATION seconds, for example "12.4"
+--   WEZTERM_GIT          "branch|ahead|changed"
+local notify_after_seconds = 10
+local remote_processes = { ssh = true, ["mosh-client"] = true, et = true }
+-- Interactive programs "run" all the time, so they get no running dot.
+local interactive_processes = {
+  nvim = true, vim = true, ssh = true, ["mosh-client"] = true, lazygit = true,
+  htop = true, btop = true, top = true, less = true, man = true, k9s = true,
+}
+local shell_processes = { zsh = true, bash = true, fish = true, sh = true }
+
+local function nf(name, fallback)
+  local ok, glyph = pcall(function() return wezterm.nerdfonts[name] end)
+  if ok and glyph and glyph ~= "" then
+    return glyph
+  end
+  return fallback or ""
+end
+
+local icons = {
+  default = nf("dev_terminal", ">"),
+  zoom = nf("md_arrow_expand_all", "Z"),
+  split = nf("md_view_split_vertical", "|"),
+  dot = nf("md_circle_medium", "*"),
+  ok = nf("md_check", "ok"),
+  err = nf("md_close", "x"),
+  branch = nf("dev_git_branch", ""),
+  clock = nf("md_clock", ""),
+  folder = nf("md_folder", ""),
+  keyboard = nf("md_keyboard", ""),
+  resize = nf("md_arrow_expand_horizontal", ""),
+  remote = nf("md_server_network", ""),
+}
+
+local process_icons = {
+  nvim = nf("custom_vim"), vim = nf("custom_vim"),
+  zsh = nf("dev_terminal"), bash = nf("dev_terminal"), fish = nf("dev_terminal"),
+  node = nf("md_nodejs"), npm = nf("md_nodejs"), npx = nf("md_nodejs"),
+  pnpm = nf("md_nodejs"), yarn = nf("md_nodejs"), bun = nf("md_nodejs"), deno = nf("md_nodejs"),
+  python = nf("md_language_python"), python3 = nf("md_language_python"), pytest = nf("md_language_python"),
+  cargo = nf("dev_rust"), rustc = nf("dev_rust"),
+  go = nf("md_language_go"),
+  java = nf("md_language_java"), gradle = nf("md_language_java"), mvn = nf("md_language_java"),
+  git = nf("dev_git"), lazygit = nf("dev_git"),
+  docker = nf("md_docker"),
+  kubectl = nf("md_kubernetes"), k9s = nf("md_kubernetes"),
+  ssh = icons.remote, ["mosh-client"] = icons.remote,
+  make = nf("seti_makefile"),
+  htop = nf("md_chart_areaspline"), btop = nf("md_chart_areaspline"), top = nf("md_chart_areaspline"),
+}
+
+local function icon_for(process)
+  local icon = process_icons[process]
+  if icon and icon ~= "" then
+    return icon
+  end
+  return icons.default
+end
+
+local function process_of(pane_info)
+  return basename((pane_info and pane_info.foreground_process_name) or "")
+end
+
+local function format_duration(seconds)
+  seconds = tonumber(seconds)
+  if not seconds then
+    return ""
+  end
+  if seconds < 10 then
+    return string.format("%.1fs", seconds)
+  end
+  if seconds < 60 then
+    return string.format("%ds", math.floor(seconds))
+  end
+  local minutes = math.floor(seconds / 60)
+  if minutes < 60 then
+    return string.format("%dm%02ds", minutes, math.floor(seconds % 60))
+  end
+  return string.format("%dh%02dm", math.floor(minutes / 60), minutes % 60)
+end
+
+local function command_state(vars)
+  vars = vars or {}
+  local status = vars.WEZTERM_CMD_STATUS
+  if not status or status == "" then
+    return nil
+  end
+  return {
+    running = status == "running",
+    code = tonumber(status),
+    duration = tonumber(vars.WEZTERM_CMD_DURATION),
+    cmd = trim(vars.WEZTERM_CMD),
+  }
+end
+
+local function remote_host(cmd)
+  cmd = trim(cmd)
+  if not cmd:match("^ssh%s") and not cmd:match("^mosh%s") then
+    return ""
+  end
+  return cmd:match("(%S+)%s*$") or ""
+end
+
 wezterm.on("format-tab-title", function(tab, _tabs, panes, _config, hover, max_width)
-  local palette = tab_bar_palette
+  local p = tab_bar_palette
+  local pane = tab.active_pane or {}
+  local process = process_of(pane)
+  local state = command_state(pane.user_vars)
+  local is_remote = remote_processes[process] == true
   local pane_count = panes and #panes or 1
   max_width = max_width or config.tab_max_width
-  local custom_title = trim(tab.tab_title)
-  local pane_title = tab.active_pane and trim(tab.active_pane.title) or ""
-  local title = ""
 
-  if custom_title ~= "" and pane_title ~= "" and custom_title ~= pane_title then
-    title = custom_title .. " · " .. pane_title
-  elseif custom_title ~= "" then
-    title = custom_title
-  elseif pane_title ~= "" then
-    title = pane_title
-  else
+  local title = trim(tab.tab_title)
+  if title == "" and state and state.running and state.cmd ~= "" then
+    title = state.cmd
+  end
+  if title == "" and process ~= "" then
+    title = process
+  end
+  if title == "" then
+    title = trim(pane.title)
+  end
+  if title == "" then
     title = "shell"
   end
 
-  local is_zoomed = tab.active_pane and tab.active_pane.is_zoomed
-  local has_unseen_output = tab.has_unseen_output
-  local markers = ""
-  if is_zoomed then
-    markers = markers .. "Z "
+  -- Small marks after the title: zoom, pane count, command result, new output.
+  local marks = {}
+  if pane.is_zoomed then
+    table.insert(marks, { text = icons.zoom, color = p.muted })
   end
-  if has_unseen_output then
-    markers = markers .. "! "
+  if pane_count > 1 then
+    table.insert(marks, { text = icons.split .. " " .. pane_count, color = p.muted })
+  end
+  if not tab.is_active and state then
+    if state.running and not interactive_processes[process] and not shell_processes[process] then
+      table.insert(marks, { text = icons.dot, color = p.warn })
+    elseif not state.running and state.code and state.duration and state.duration >= 5 then
+      local ok = state.code == 0
+      table.insert(marks, {
+        text = (ok and icons.ok or icons.err) .. " " .. format_duration(state.duration),
+        color = ok and p.ok or p.err,
+      })
+    end
+  end
+  if tab.has_unseen_output and #marks == 0 and not tab.is_active then
+    table.insert(marks, { text = icons.dot, color = p.accent })
   end
 
-  local pane_suffix = pane_count > 1 and (" " .. pane_count .. "p") or ""
   local index = tostring(tab.tab_index + 1)
-  local reserved_width = #index + #markers + #pane_suffix + 5
-  local title_width = math.max(6, max_width - reserved_width)
+  local marks_width = 0
+  for _, mark in ipairs(marks) do
+    marks_width = marks_width + wezterm.column_width(mark.text) + 1
+  end
+  local title_width = math.max(6, max_width - (#index + marks_width + 6))
   title = truncate_title(title, title_width)
 
-  local bg = palette.inactive_bg
-  local fg = palette.inactive_fg
-  local index_fg = palette.accent
-  if tab.is_active then
-    bg = palette.active_bg
-    fg = palette.active_fg
-    index_fg = palette.active_fg
+  -- Square tab blocks: the active, hovered and remote tabs get a background.
+  local bg = p.bar_bg
+  local fg = p.inactive_fg
+  local index_fg = p.inactive_fg
+  local bold = false
+  if is_remote then
+    bg, fg, index_fg, bold = p.remote_bg, p.remote, p.remote, true
+  elseif tab.is_active then
+    bg, fg, index_fg, bold = p.active_bg, p.active_fg, p.accent, true
   elseif hover then
-    bg = palette.hover_bg
-    fg = palette.hover_fg
-  end
-  if has_unseen_output then
-    index_fg = palette.alert
+    bg, fg, index_fg = p.hover_bg, p.hover_fg, p.hover_fg
   end
 
-  return {
-    { Background = { Color = palette.bar_bg } },
-    { Foreground = { Color = bg } },
-    { Text = " " },
+  local cells = {
     { Background = { Color = bg } },
+    { Attribute = { Intensity = bold and "Bold" or "Normal" } },
     { Foreground = { Color = index_fg } },
-    { Attribute = { Intensity = "Bold" } },
     { Text = " " .. index .. " " },
     { Foreground = { Color = fg } },
-    { Text = markers .. title .. pane_suffix .. " " },
-    "ResetAttributes",
-    { Background = { Color = palette.bar_bg } },
-    { Text = " " },
+    { Text = icon_for(process) .. " " .. title },
   }
+  for _, mark in ipairs(marks) do
+    table.insert(cells, { Foreground = { Color = mark.color } })
+    table.insert(cells, { Text = " " .. mark.text })
+  end
+  table.insert(cells, { Text = " " })
+  table.insert(cells, { Attribute = { Intensity = "Normal" } })
+  table.insert(cells, { Background = { Color = p.bar_bg } })
+  table.insert(cells, { Text = " " })
+  return cells
 end)
 
-local function append_status_segment(cells, icon, label, fg, icon_gap)
-  if not label or label == "" then
-    return
+-- A flat, square status block. items = { parts, ... }; parts = { { text, fg, bold }, ... }
+-- Vertical dividers separate the items.
+local function append_block(cells, bg, items)
+  local p = tab_bar_palette
+  table.insert(cells, { Background = { Color = bg } })
+  table.insert(cells, { Text = " " })
+  for i, parts in ipairs(items) do
+    if i > 1 then
+      table.insert(cells, { Attribute = { Intensity = "Normal" } })
+      table.insert(cells, { Foreground = { Color = p.divider } })
+      table.insert(cells, { Text = " │ " })
+    end
+    for _, part in ipairs(parts) do
+      table.insert(cells, { Attribute = { Intensity = part.bold and "Bold" or "Normal" } })
+      table.insert(cells, { Foreground = { Color = part.fg or p.text } })
+      table.insert(cells, { Text = part.text })
+    end
   end
-
-  icon_gap = icon_gap or " "
-  table.insert(cells, { Background = { Color = tab_bar_palette.status_bg } })
-  table.insert(cells, { Foreground = { Color = fg } })
-  table.insert(cells, { Attribute = { Intensity = "Bold" } })
-  table.insert(cells, { Text = " " .. icon .. icon_gap })
-  table.insert(cells, { Foreground = { Color = tab_bar_palette.status_fg } })
-  table.insert(cells, { Text = label .. " " })
-  table.insert(cells, "ResetAttributes")
-  table.insert(cells, { Background = { Color = tab_bar_palette.bar_bg } })
+  table.insert(cells, { Attribute = { Intensity = "Normal" } })
   table.insert(cells, { Text = " " })
 end
 
-wezterm.on("update-status", function(window, pane)
-  -- Workspace name
-  local active_workspace = window:active_workspace()
-  local stat = active_workspace
-  local stat_icon = workspace_icon(active_workspace)
-  local stat_color = "#C34043"
-  sync_fullscreen_background(window)
-  -- It's a little silly to have workspace name all the time
-  -- Utilize this to display LDR or current key table name
+-- Key hints for the leader key and key tables, so the next keys are on screen.
+local key_hints = {
+  leader = {
+    { "s", "split↓" }, { "v", "split→" }, { "z", "zoom" }, { "t", "tab" }, { "p", "project" },
+    { "w", "switch" }, { "f", "pick" }, { "F", "open" }, { "/", "search" }, { "r", "resize" },
+    { "m", "move tab" }, { "Space", "palette" },
+  },
+  resize_pane = { { "h j k l", "resize pane" }, { "Esc", "done" } },
+  move_tab = { { "h/j", "move left" }, { "k/l", "move right" }, { "Esc", "done" } },
+}
+
+local function hint_items(hints, key_color)
+  local items = {}
+  for _, hint in ipairs(hints) do
+    table.insert(items, {
+      { text = hint[1], fg = key_color, bold = true },
+      { text = " " .. hint[2], fg = tab_bar_palette.muted },
+    })
+  end
+  return items
+end
+
+local function sync_focus_opacity(window)
   local overrides = window:get_config_overrides() or {}
   if is_macos then
     -- Avoid focus-driven opacity changes on macOS; they line up with fullscreen
@@ -650,66 +854,139 @@ wezterm.on("update-status", function(window, pane)
       overrides.window_background_opacity = nil
       window:set_config_overrides(overrides)
     end
-  else
-    local target_opacity = opacity
-    if not window:is_focused() then
-      target_opacity = opacity / 1.25
-    end
-    if overrides.window_background_opacity ~= target_opacity then
-      overrides.window_background_opacity = target_opacity
-      window:set_config_overrides(overrides)
-    end
+    return
   end
-  if window:active_key_table() then
-    stat = window:active_key_table()
-    stat_color = "#7FB4CA"
+  local target_opacity = opacity
+  if not window:is_focused() then
+    target_opacity = opacity / 1.25
   end
+  if overrides.window_background_opacity ~= target_opacity then
+    overrides.window_background_opacity = target_opacity
+    window:set_config_overrides(overrides)
+  end
+end
+
+wezterm.on("update-status", function(window, pane)
+  local p = tab_bar_palette
+  sync_fullscreen_background(window)
+  sync_focus_opacity(window)
+
+  local process = basename(pane:get_foreground_process_name() or "")
+  local vars = pane:get_user_vars() or {}
+  local is_remote = remote_processes[process] == true
+
+  -- Left block, flush with the left edge: workspace, or the active mode.
+  local left = {}
+  local key_table = window:active_key_table()
+  local hints = nil
+  local hint_color = p.accent
   if window:leader_is_active() then
-    stat = "LDR"
-    stat_color = "#957FB8"
-  end
-
-  -- Current working directory
-  local cwd = pane:get_current_working_dir()
-  if cwd then
-    if type(cwd) == "userdata" then
-      -- Wezterm introduced the URL object in 20240127-113634-bbcac864
-      cwd = basename(cwd.file_path)
-    else
-      -- 20230712-072601-f4abf8fd or earlier version
-      cwd = basename(cwd)
-    end
+    append_block(left, p.leader, { { { text = icons.keyboard .. " LEADER", fg = p.on_color, bold = true } } })
+    hints, hint_color = key_hints.leader, p.leader
+  elseif key_table then
+    local label = string.upper((key_table:gsub("_pane$", ""):gsub("_", " ")))
+    append_block(left, p.warn, { { { text = icons.resize .. " " .. label, fg = p.on_color, bold = true } } })
+    hints, hint_color = key_hints[key_table] or { { "Esc", "done" } }, p.warn
   else
-    cwd = ""
+    local workspace = window:active_workspace()
+    local names = wezterm.mux.get_workspace_names()
+    local position = ""
+    if #names > 1 then
+      for i, name in ipairs(names) do
+        if name == workspace then
+          position = " " .. i .. "/" .. #names
+        end
+      end
+    end
+    append_block(left, p.accent, { {
+      { text = workspace_icon(workspace) .. " " .. workspace, fg = p.on_color, bold = true },
+      { text = position, fg = p.on_color },
+    } })
   end
+  table.insert(left, { Background = { Color = p.bar_bg } })
+  table.insert(left, { Text = " " })
+  window:set_left_status(wezterm.format(left))
 
-  -- Current command
-  local cmd = pane:get_foreground_process_name()
-  -- CWD and CMD could be nil (e.g. viewing log using Ctrl-Alt-l)
-  cmd = cmd and basename(cmd) or ""
+  -- Right block, flush with the right edge: key hints in a mode;
+  -- else remote host, git, last command and clock, with dividers.
+  local items = {}
+  if hints then
+    items = hint_items(hints, hint_color)
+  else
+    if is_remote then
+      local host = remote_host(vars.WEZTERM_CMD)
+      table.insert(items, {
+        { text = icons.remote .. " REMOTE" .. (host ~= "" and (" " .. host) or ""), fg = p.remote, bold = true },
+      })
+    end
 
-  -- Time
-  local time = wezterm.strftime("%H:%M")
+    local git = vars.WEZTERM_GIT or ""
+    local branch, ahead, changed = git:match("^(.-)|(%d*)|(%d*)$")
+    if branch and branch ~= "" then
+      local parts = {
+        { text = icons.branch .. " ", fg = p.git },
+        { text = branch, fg = p.text },
+      }
+      if tonumber(ahead) and tonumber(ahead) > 0 then
+        table.insert(parts, { text = " ↑" .. ahead, fg = p.accent })
+      end
+      if tonumber(changed) and tonumber(changed) > 0 then
+        table.insert(parts, { text = " ~" .. changed, fg = p.warn })
+      end
+      table.insert(items, parts)
+    else
+      local cwd = pane:get_current_working_dir()
+      cwd = cwd and basename(cwd_to_path(cwd)) or ""
+      if cwd ~= "" then
+        table.insert(items, { { text = icons.folder .. " ", fg = p.ok }, { text = cwd, fg = p.text } })
+      end
+    end
 
-  -- Left status (left of the tab line)
-  local left_status = {
-    { Background = { Color = tab_bar_palette.bar_bg } },
-    { Text = "  " },
-  }
-  append_status_segment(left_status, stat_icon, stat, stat_color, "  ")
-  window:set_left_status(wezterm.format(left_status))
+    local state = command_state(vars)
+    if state and not state.running and state.code then
+      local duration = state.duration and (" " .. format_duration(state.duration)) or ""
+      if state.code == 0 then
+        table.insert(items, { { text = icons.ok, fg = p.ok, bold = true }, { text = duration, fg = p.text } })
+      else
+        table.insert(items, {
+          { text = icons.err .. " exit " .. state.code, fg = p.err, bold = true },
+          { text = duration, fg = p.text },
+        })
+      end
+    end
 
-  -- Right status
-  local right_status = {
-    { Background = { Color = tab_bar_palette.bar_bg } },
-    { Text = " " },
-  }
-  -- Wezterm has built-in Nerd Font symbols:
-  -- https://wezfurlong.org/wezterm/config/lua/wezterm/nerdfonts.html
-  append_status_segment(right_status, wezterm.nerdfonts.md_folder, cwd, tab_bar_palette.cwd)
-  append_status_segment(right_status, wezterm.nerdfonts.fa_code, cmd, tab_bar_palette.command)
-  append_status_segment(right_status, wezterm.nerdfonts.md_clock, time, tab_bar_palette.clock)
-  window:set_right_status(wezterm.format(right_status))
+    table.insert(items, {
+      { text = icons.clock .. " ", fg = p.muted },
+      { text = wezterm.strftime("%H:%M"), fg = p.text },
+    })
+  end
+  local right = { { Background = { Color = p.bar_bg } }, { Text = " " } }
+  append_block(right, p.pill_bg, items)
+  window:set_right_status(wezterm.format(right))
+end)
+
+-- System notification when a long command ends in a pane you are not looking at.
+wezterm.on("user-var-changed", function(window, pane, name, value)
+  if name ~= "WEZTERM_CMD_STATUS" or value == "running" then
+    return
+  end
+  local vars = pane:get_user_vars() or {}
+  local duration = tonumber(vars.WEZTERM_CMD_DURATION)
+  if not duration or duration < notify_after_seconds then
+    return
+  end
+  local active = window:active_pane()
+  if window:is_focused() and active and active:pane_id() == pane:pane_id() then
+    return
+  end
+  local code = tonumber(value) or 0
+  local cmd = trim(vars.WEZTERM_CMD)
+  if cmd == "" then
+    cmd = "Command"
+  end
+  local title = truncate_title(cmd, 40) .. (code == 0 and " finished" or " failed")
+  local message = string.format("Exit %d after %s · %s", code, format_duration(duration), window:active_workspace())
+  window:toast_notification(title, message, nil, 5000)
 end)
 
 --[[ Appearance setting for when I need to take pretty screenshots

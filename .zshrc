@@ -168,3 +168,7 @@ fi
 if [[ -r "$HOME/.zshrc.local" ]]; then
   source "$HOME/.zshrc.local"
 fi
+
+if [[ -f ~/dotfiles/wezterm/shell-integration.zsh ]]; then 
+  source ~/dotfiles/wezterm/shell-integration.zsh
+fi

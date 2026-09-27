@@ -70,7 +70,9 @@ Leader key: `Ctrl+a`. Press it, then press a command key within 1000 ms.
 - Tabs: `Ctrl+a t` new tab, `Ctrl+a [` / `]` previous/next, `Ctrl+a n` navigator, `Ctrl+a e` rename, `Ctrl+a 1..9` jump.
 - Tab moving: `Ctrl+a m` enters move mode; `h/j` moves left, `k/l` moves right, `Esc` or `Enter` exits. `Ctrl+a Shift+{` / `Shift+}` also move the current tab.
 - Workspaces: `Ctrl+a w` fuzzy launcher, `Ctrl+a p` switch/create workspace from current cwd, `Ctrl+a Shift+p` prompt for a workspace name from current cwd.
-- Copy/search/tools: `Ctrl+a c` copy mode, `Ctrl+a f` quick-select paths/hashes/URLs/tokens, `Ctrl+a /` search scrollback, `Ctrl+a Space` command palette.
+- Copy/search/tools: `Ctrl+a c` copy mode, `Ctrl+a f` quick-select and copy paths/hashes/URLs/tokens/`file:line`/ticket IDs, `Ctrl+a Shift+f` quick-select and open (URL in the browser, `file:line` in nvim in a split), `Ctrl+a /` search scrollback, `Ctrl+a Space` command palette.
+- Tab bar: tabs show the process icon; background tabs show a running dot, or ✓/✗ with the time of the last long command. Leader and key-table modes show their keys on the right. An ssh pane turns its tab orange and adds a REMOTE item to the status.
+- Status: one block on the right edge, items split by `│`: git branch (↑ ahead, ~ changed), exit code and time of the last command, clock. A command of 10s or more that ends in a hidden pane sends a system notification. These need [`wezterm/shell-integration.zsh`](wezterm/shell-integration.zsh): source it at the end of `~/.zshrc`.
 
 Launch menu entries include `Home`, `Dotfiles`, and `Neovim Config`.
 
