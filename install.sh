@@ -161,6 +161,7 @@ install_symlink "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
 install_symlink "$SCRIPT_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
 install_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
 install_symlink "$SCRIPT_DIR/nvim" "${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
+install_symlink "$SCRIPT_DIR/rex" "${XDG_CONFIG_HOME:-$HOME/.config}/rex"
 install_symlink "$SCRIPT_DIR/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 install_symlink "$SCRIPT_DIR/claude/agents" "$HOME/.claude/agents"
 install_oh_my_zsh
