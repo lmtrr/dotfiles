@@ -360,14 +360,14 @@ config.set_environment_variables = {
 local code_ligature_features = { "calt=1", "clig=1", "liga=1", "ss11=1" }
 local no_ligature_features = { "calt=0", "clig=0", "liga=0" }
 config.font_dirs = { wezterm.home_dir .. "/Library/Fonts" }
-config.font_size = 16
+config.font_size = 14
 config.cell_width = 0.85
 config.line_height = 1.1
 config.font = wezterm.font_with_fallback({
-  { family = "Anthrosevka Mono",      weight = "Regular", style = "Normal",                          harfbuzz_features = no_ligature_features },
-  -- { family = "Liga SFMono Nerd Font", weight = "Regular", style = "Normal",                          harfbuzz_features = code_ligature_features },
+  -- { family = "Anthrosevka Mono",      weight = "Medium",  style = "Normal",                        harfbuzz_features = no_ligature_features },
+  { family = "SF Mono",               weight = "Medium",  style = "Normal",                        harfbuzz_features = code_ligature_features },
   -- { family = "Geist Mono",            weight = "Medium",  harfbuzz_features = code_ligature_features },
-  { family = "JetBrains Mono",        weight = "Regular", harfbuzz_features = code_ligature_features },
+  { family = "JetBrains Mono",        weight = "Regular", harfbuzz_features = no_ligature_features },
   { family = "IosevkaTerm Nerd Font", weight = "Medium" },
   { family = "Symbols Nerd Font Mono" },
   { family = "Menlo" },
@@ -437,8 +437,8 @@ config.inactive_pane_hsb = {
 -- Quick select: extra patterns for development output.
 config.quick_select_patterns = {
   [=[[\w./@~-]+\.[A-Za-z0-9]+:\d+(?::\d+)?]=], -- file.ext:line(:col)
-  [=[[\w./-]+\.py::[\w\[\]-]+]=],               -- pytest node ids
-  [=[\b[A-Z][A-Z0-9]+-\d+\b]=],                 -- ticket ids, for example API-231
+  [=[[\w./-]+\.py::[\w\[\]-]+]=],              -- pytest node ids
+  [=[\b[A-Z][A-Z0-9]+-\d+\b]=],                -- ticket ids, for example API-231
 }
 
 local open_patterns = {
@@ -485,29 +485,29 @@ config.keys = {
       action = wezterm.action_callback(open_selection),
     },
   },
-  { key = "/",          mods = "LEADER",      action = act.Search("CurrentSelectionOrEmptyString") },
-  { key = "[",          mods = "SUPER",       action = send_if_nvim("[", "ALT") },
-  { key = "]",          mods = "SUPER",       action = send_if_nvim("]", "ALT") },
+  { key = "/", mods = "LEADER", action = act.Search("CurrentSelectionOrEmptyString") },
+  { key = "[", mods = "SUPER",  action = send_if_nvim("[", "ALT") },
+  { key = "]", mods = "SUPER",  action = send_if_nvim("]", "ALT") },
 
   -- Pane keybindings
-  { key = "s",          mods = "LEADER",      action = act.SplitVertical { domain = "CurrentPaneDomain" } },
-  { key = "v",          mods = "LEADER",      action = act.SplitHorizontal { domain = "CurrentPaneDomain" } },
-  { key = "h",          mods = "LEADER",      action = act.ActivatePaneDirection("Left") },
-  { key = "j",          mods = "LEADER",      action = act.ActivatePaneDirection("Down") },
-  { key = "k",          mods = "LEADER",      action = act.ActivatePaneDirection("Up") },
-  { key = "l",          mods = "LEADER",      action = act.ActivatePaneDirection("Right") },
-  { key = "q",          mods = "LEADER",      action = act.CloseCurrentPane { confirm = true } },
-  { key = "z",          mods = "LEADER",      action = act.TogglePaneZoomState },
-  { key = "o",          mods = "LEADER",      action = act.RotatePanes "Clockwise" },
+  { key = "s", mods = "LEADER", action = act.SplitVertical { domain = "CurrentPaneDomain" } },
+  { key = "v", mods = "LEADER", action = act.SplitHorizontal { domain = "CurrentPaneDomain" } },
+  { key = "h", mods = "LEADER", action = act.ActivatePaneDirection("Left") },
+  { key = "j", mods = "LEADER", action = act.ActivatePaneDirection("Down") },
+  { key = "k", mods = "LEADER", action = act.ActivatePaneDirection("Up") },
+  { key = "l", mods = "LEADER", action = act.ActivatePaneDirection("Right") },
+  { key = "q", mods = "LEADER", action = act.CloseCurrentPane { confirm = true } },
+  { key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
+  { key = "o", mods = "LEADER", action = act.RotatePanes "Clockwise" },
   -- We can make separate keybindings for resizing panes
   -- But Wezterm offers custom "mode" in the name of "KeyTable"
-  { key = "r",          mods = "LEADER",      action = act.ActivateKeyTable { name = "resize_pane", one_shot = false } },
+  { key = "r", mods = "LEADER", action = act.ActivateKeyTable { name = "resize_pane", one_shot = false } },
 
   -- Tab keybindings
-  { key = "t",          mods = "LEADER",      action = act.SpawnTab("CurrentPaneDomain") },
-  { key = "[",          mods = "LEADER",      action = act.ActivateTabRelative(-1) },
-  { key = "]",          mods = "LEADER",      action = act.ActivateTabRelative(1) },
-  { key = "n",          mods = "LEADER",      action = act.ShowTabNavigator },
+  { key = "t", mods = "LEADER", action = act.SpawnTab("CurrentPaneDomain") },
+  { key = "[", mods = "LEADER", action = act.ActivateTabRelative(-1) },
+  { key = "]", mods = "LEADER", action = act.ActivateTabRelative(1) },
+  { key = "n", mods = "LEADER", action = act.ShowTabNavigator },
   {
     key = "e",
     mods = "LEADER",
@@ -618,8 +618,17 @@ local notify_after_seconds = 10
 local remote_processes = { ssh = true, ["mosh-client"] = true, et = true }
 -- Interactive programs "run" all the time, so they get no running dot.
 local interactive_processes = {
-  nvim = true, vim = true, ssh = true, ["mosh-client"] = true, lazygit = true,
-  htop = true, btop = true, top = true, less = true, man = true, k9s = true,
+  nvim = true,
+  vim = true,
+  ssh = true,
+  ["mosh-client"] = true,
+  lazygit = true,
+  htop = true,
+  btop = true,
+  top = true,
+  less = true,
+  man = true,
+  k9s = true,
 }
 local shell_processes = { zsh = true, bash = true, fish = true, sh = true }
 
@@ -647,20 +656,38 @@ local icons = {
 }
 
 local process_icons = {
-  nvim = nf("custom_vim"), vim = nf("custom_vim"),
-  zsh = nf("dev_terminal"), bash = nf("dev_terminal"), fish = nf("dev_terminal"),
-  node = nf("md_nodejs"), npm = nf("md_nodejs"), npx = nf("md_nodejs"),
-  pnpm = nf("md_nodejs"), yarn = nf("md_nodejs"), bun = nf("md_nodejs"), deno = nf("md_nodejs"),
-  python = nf("md_language_python"), python3 = nf("md_language_python"), pytest = nf("md_language_python"),
-  cargo = nf("dev_rust"), rustc = nf("dev_rust"),
+  nvim = nf("custom_vim"),
+  vim = nf("custom_vim"),
+  zsh = nf("dev_terminal"),
+  bash = nf("dev_terminal"),
+  fish = nf("dev_terminal"),
+  node = nf("md_nodejs"),
+  npm = nf("md_nodejs"),
+  npx = nf("md_nodejs"),
+  pnpm = nf("md_nodejs"),
+  yarn = nf("md_nodejs"),
+  bun = nf("md_nodejs"),
+  deno = nf("md_nodejs"),
+  python = nf("md_language_python"),
+  python3 = nf("md_language_python"),
+  pytest = nf("md_language_python"),
+  cargo = nf("dev_rust"),
+  rustc = nf("dev_rust"),
   go = nf("md_language_go"),
-  java = nf("md_language_java"), gradle = nf("md_language_java"), mvn = nf("md_language_java"),
-  git = nf("dev_git"), lazygit = nf("dev_git"),
+  java = nf("md_language_java"),
+  gradle = nf("md_language_java"),
+  mvn = nf("md_language_java"),
+  git = nf("dev_git"),
+  lazygit = nf("dev_git"),
   docker = nf("md_docker"),
-  kubectl = nf("md_kubernetes"), k9s = nf("md_kubernetes"),
-  ssh = icons.remote, ["mosh-client"] = icons.remote,
+  kubectl = nf("md_kubernetes"),
+  k9s = nf("md_kubernetes"),
+  ssh = icons.remote,
+  ["mosh-client"] = icons.remote,
   make = nf("seti_makefile"),
-  htop = nf("md_chart_areaspline"), btop = nf("md_chart_areaspline"), top = nf("md_chart_areaspline"),
+  htop = nf("md_chart_areaspline"),
+  btop = nf("md_chart_areaspline"),
+  top = nf("md_chart_areaspline"),
 }
 
 local function icon_for(process)
@@ -838,7 +865,7 @@ local function hint_items(hints, key_color)
   local items = {}
   for _, hint in ipairs(hints) do
     table.insert(items, {
-      { text = hint[1], fg = key_color, bold = true },
+      { text = hint[1],        fg = key_color,            bold = true },
       { text = " " .. hint[2], fg = tab_bar_palette.muted },
     })
   end
@@ -900,7 +927,7 @@ wezterm.on("update-status", function(window, pane)
     end
     append_block(left, p.accent, { {
       { text = workspace_icon(workspace) .. " " .. workspace, fg = p.on_color, bold = true },
-      { text = position, fg = p.on_color },
+      { text = position,                                      fg = p.on_color },
     } })
   end
   table.insert(left, { Background = { Color = p.bar_bg } })
@@ -925,7 +952,7 @@ wezterm.on("update-status", function(window, pane)
     if branch and branch ~= "" then
       local parts = {
         { text = icons.branch .. " ", fg = p.git },
-        { text = branch, fg = p.text },
+        { text = branch,              fg = p.text },
       }
       if tonumber(ahead) and tonumber(ahead) > 0 then
         table.insert(parts, { text = " ↑" .. ahead, fg = p.accent })
@@ -950,13 +977,13 @@ wezterm.on("update-status", function(window, pane)
       else
         table.insert(items, {
           { text = icons.err .. " exit " .. state.code, fg = p.err, bold = true },
-          { text = duration, fg = p.text },
+          { text = duration,                            fg = p.text },
         })
       end
     end
 
     table.insert(items, {
-      { text = icons.clock .. " ", fg = p.muted },
+      { text = icons.clock .. " ",        fg = p.muted },
       { text = wezterm.strftime("%H:%M"), fg = p.text },
     })
   end
