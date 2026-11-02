@@ -128,6 +128,23 @@ install_symlink() {
   echo "Linked $target -> $source."
 }
 
+REX_APP_ID=com.superlogical.rex
+REX_FONT_KEY=Workspace.terminalFontName
+# The SF Mono that ships with macOS is a hidden font, so its family name starts with a dot.
+REX_SYSTEM_FONT=".SF NS Mono"
+
+configure_rex_font() {
+  current_font=$(defaults read "$REX_APP_ID" "$REX_FONT_KEY" 2>/dev/null || true)
+
+  if [ "$current_font" = "$REX_SYSTEM_FONT" ]; then
+    echo "Rex already uses the system SF Mono."
+    return
+  fi
+
+  defaults write "$REX_APP_ID" "$REX_FONT_KEY" -string "$REX_SYSTEM_FONT"
+  echo "Set the Rex terminal font to the system SF Mono. Restart Rex to apply it."
+}
+
 has_libertinus_font() {
   for dir in \
     "$HOME/Library/Fonts" \
@@ -162,6 +179,7 @@ install_symlink "$SCRIPT_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
 install_symlink "$SCRIPT_DIR/.gitconfig" "$HOME/.gitconfig"
 install_symlink "$SCRIPT_DIR/nvim" "${XDG_CONFIG_HOME:-$HOME/.config}/nvim"
 install_symlink "$SCRIPT_DIR/rex" "${XDG_CONFIG_HOME:-$HOME/.config}/rex"
+configure_rex_font
 install_symlink "$SCRIPT_DIR/claude/CLAUDE.md" "$HOME/.claude/CLAUDE.md"
 install_symlink "$SCRIPT_DIR/claude/agents" "$HOME/.claude/agents"
 install_oh_my_zsh

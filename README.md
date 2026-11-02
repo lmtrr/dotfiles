@@ -84,6 +84,7 @@ Suggested flow: open WezTerm, jump with `Ctrl+a w`, create a project workspace w
 
 [`rex/init.lua`](rex/init.lua) gives [Rex](https://www.superlogical.com/rex) the same keys as WezTerm: the `Ctrl+a` leader, the `resize_pane` and `move_tab` modes, and Neovim-aware `Alt+h/j/k/l` and `Alt+Arrow`. A Rex session takes the place of a WezTerm workspace.
 
+- `install.sh` sets the Rex terminal font to the SF Mono that ships with macOS (`.SF NS Mono`), so no font download is needed. It is a hidden system font, so a later macOS update can break it. To go back, run `defaults write com.superlogical.rex Workspace.terminalFontName -string "SF Mono"`.
 - Rex does not watch the file. Run `rex config reload` after each change, or `rex config check` to find errors first.
 - Not in Rex: copy mode, quick select, rotate panes, tab navigator, and the workspace name prompt (`c`, `f`, `F`, `o`, `n`, `P`).
 - Rex resizes by a percentage of the split, not by cells. Change `MODE_RESIZE_STEP` and `QUICK_RESIZE_STEP` to tune it.
