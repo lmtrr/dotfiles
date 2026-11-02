@@ -12,6 +12,7 @@ Concise manual for these macOS dotfiles.
 
 - [`.zshrc`](.zshrc): shell aliases plus `fzf`, `zoxide`, and `eza` setup.
 - [`.wezterm.lua`](.wezterm.lua): WezTerm panes, tabs, workspaces, launcher, quick-select, and Neovim pane handoff.
+- [`rex/`](rex): Rex key bindings that follow the WezTerm config.
 - [`nvim/`](nvim): Neovim setup for LSP, Telescope, Neo-tree, formatting, linting, debugging, tests, sessions, and custom UI.
 
 The Neovim config started from [theovim](https://github.com/theopn/theovim) and is now customized. WezTerm and Neovim both use Vague.
@@ -21,6 +22,7 @@ The Neovim config started from [theovim](https://github.com/theopn/theovim) and 
 ├── .zshrc
 ├── .wezterm.lua
 ├── install.sh
+├── rex/init.lua
 └── nvim
     ├── init.lua
     ├── lazy-lock.json
@@ -38,7 +40,7 @@ brew bundle --file Brewfile
 ./install.sh
 ```
 
-The [Brewfile](Brewfile) installs the Homebrew-managed CLI tools, apps, and fonts. The installer links `~/.zshrc`, `~/.wezterm.lua`, `~/.gitconfig`, and `~/.config/nvim` to [`.zshrc`](.zshrc), [`.wezterm.lua`](.wezterm.lua), [`.gitconfig`](.gitconfig), and [`nvim`](nvim) in this repo. It backs up an existing file or directory at each target, installs Oh My Zsh helpers, and keeps a few shell-tool/font checks for direct installer usage.
+The [Brewfile](Brewfile) installs the Homebrew-managed CLI tools, apps, and fonts. The installer links `~/.zshrc`, `~/.wezterm.lua`, `~/.gitconfig`, `~/.config/nvim`, and `~/.config/rex` to [`.zshrc`](.zshrc), [`.wezterm.lua`](.wezterm.lua), [`.gitconfig`](.gitconfig), [`nvim`](nvim), and [`rex`](rex) in this repo. It backs up an existing file or directory at each target, installs Oh My Zsh helpers, and keeps a few shell-tool/font checks for direct installer usage.
 
 ### Shell
 
@@ -77,6 +79,15 @@ Leader key: `Ctrl+a`. Press it, then press a command key within 1000 ms.
 Launch menu entries include `Home`, `Dotfiles`, and `Neovim Config`.
 
 Suggested flow: open WezTerm, jump with `Ctrl+a w`, create a project workspace with `Ctrl+a p`, split with `Ctrl+a s/v`, and move between terminal panes and Neovim with `Alt+h/j/k/l`.
+
+### Rex
+
+[`rex/init.lua`](rex/init.lua) gives [Rex](https://www.superlogical.com/rex) the same keys as WezTerm: the `Ctrl+a` leader, the `resize_pane` and `move_tab` modes, and Neovim-aware `Alt+h/j/k/l` and `Alt+Arrow`. A Rex session takes the place of a WezTerm workspace.
+
+- Rex does not watch the file. Run `rex config reload` after each change, or `rex config check` to find errors first.
+- Not in Rex: copy mode, quick select, rotate panes, tab navigator, and the workspace name prompt (`c`, `f`, `F`, `o`, `n`, `P`).
+- Rex resizes by a percentage of the split, not by cells. Change `MODE_RESIZE_STEP` and `QUICK_RESIZE_STEP` to tune it.
+- A leader sequence has no timeout. Press `Esc` to cancel it.
 
 ### Neovim
 
@@ -166,6 +177,7 @@ Main files to edit:
 
 - [`.zshrc`](.zshrc)
 - [`.wezterm.lua`](.wezterm.lua)
+- [`rex/init.lua`](rex/init.lua)
 - [`nvim/init.lua`](nvim/init.lua)
 - [`nvim/lua/plugins/`](nvim/lua/plugins)
 - [`nvim/lua/ui/`](nvim/lua/ui)
