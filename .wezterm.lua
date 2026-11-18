@@ -433,8 +433,11 @@ config.inactive_pane_hsb = {
   saturation = 0.6,
   brightness = 0.75,
 }
+-- Keeps text readable in low-contrast themes.
+config.text_min_contrast_ratio = 4.5
 
 -- Quick select: extra patterns for development output.
+config.quick_select_remove_styling = true
 config.quick_select_patterns = {
   [=[[\w./@~-]+\.[A-Za-z0-9]+:\d+(?::\d+)?]=], -- file.ext:line(:col)
   [=[[\w./-]+\.py::[\w\[\]-]+]=],              -- pytest node ids
@@ -485,7 +488,7 @@ config.keys = {
       action = wezterm.action_callback(open_selection),
     },
   },
-  { key = "/", mods = "LEADER", action = act.Search("CurrentSelectionOrEmptyString") },
+  { key = "/", mods = "LEADER", action = act.Search { CaseSmartString = "" } },
   { key = "[", mods = "SUPER",  action = send_if_nvim("[", "ALT") },
   { key = "]", mods = "SUPER",  action = send_if_nvim("]", "ALT") },
 
@@ -511,18 +514,21 @@ config.keys = {
   {
     key = "e",
     mods = "LEADER",
-    action = act.PromptInputLine {
-      description = wezterm.format {
-        { Attribute = { Intensity = "Bold" } },
-        { Foreground = { AnsiColor = "Fuchsia" } },
-        { Text = "Renaming Tab Title...:" },
-      },
-      action = wezterm.action_callback(function(window, pane, line)
-        if line then
-          window:active_tab():set_title(line)
-        end
-      end)
-    }
+    action = wezterm.action_callback(function(window, pane)
+      window:perform_action(act.PromptInputLine {
+        description = wezterm.format {
+          { Attribute = { Intensity = "Bold" } },
+          { Foreground = { AnsiColor = "Fuchsia" } },
+          { Text = "Renaming Tab Title...:" },
+        },
+        initial_value = window:active_tab():get_title(),
+        action = wezterm.action_callback(function(window, pane, line)
+          if line then
+            window:active_tab():set_title(line)
+          end
+        end)
+      }, pane)
+    end),
   },
   -- Key table for moving tabs around
   { key = "m", mods = "LEADER",       action = act.ActivateKeyTable { name = "move_tab", one_shot = false } },
@@ -546,21 +552,24 @@ config.keys = {
   {
     key = "P",
     mods = "LEADER|SHIFT",
-    action = act.PromptInputLine {
-      description = wezterm.format({
-        { Attribute = { Intensity = "Bold" } },
-        { Foreground = { AnsiColor = "Teal" } },
-        { Text = "Workspace name (blank uses current directory):" },
-      }),
-      action = wezterm.action_callback(function(window, pane, line)
-        local cwd = cwd_to_path(pane:get_current_working_dir())
-        local name = (line and line ~= "") and line or workspace_name_from_cwd(cwd)
-        window:perform_action(act.SwitchToWorkspace {
-          name = name,
-          spawn = { cwd = cwd },
-        }, pane)
-      end),
-    }
+    action = wezterm.action_callback(function(window, pane)
+      window:perform_action(act.PromptInputLine {
+        description = wezterm.format({
+          { Attribute = { Intensity = "Bold" } },
+          { Foreground = { AnsiColor = "Teal" } },
+          { Text = "Workspace name:" },
+        }),
+        initial_value = workspace_name_from_cwd(cwd_to_path(pane:get_current_working_dir())),
+        action = wezterm.action_callback(function(window, pane, line)
+          local cwd = cwd_to_path(pane:get_current_working_dir())
+          local name = (line and line ~= "") and line or workspace_name_from_cwd(cwd)
+          window:perform_action(act.SwitchToWorkspace {
+            name = name,
+            spawn = { cwd = cwd },
+          }, pane)
+        end),
+      }, pane)
+    end),
   },
 
   split_nav("move", "h"),
@@ -655,6 +664,18 @@ local icons = {
   remote = nf("md_server_network", ""),
 }
 
+local progress_slices = {
+  nf("md_circle_slice_1", "."),
+  nf("md_circle_slice_2", "."),
+  nf("md_circle_slice_3", "o"),
+  nf("md_circle_slice_4", "o"),
+  nf("md_circle_slice_5", "o"),
+  nf("md_circle_slice_6", "O"),
+  nf("md_circle_slice_7", "O"),
+  nf("md_circle_slice_8", "@"),
+}
+local progress_busy = nf("md_progress_clock", "~")
+
 local process_icons = {
   nvim = nf("custom_vim"),
   vim = nf("custom_vim"),
@@ -734,6 +755,29 @@ local function command_state(vars)
   }
 end
 
+local function progress_slice(pct)
+  pct = math.max(0, math.min(100, tonumber(pct) or 0))
+  return progress_slices[math.min(8, math.floor(pct / 12.5) + 1)], pct
+end
+
+-- Mark for OSC 9;4 progress: a table with Percentage or Error, or "Indeterminate".
+local function progress_mark(progress, p)
+  if progress == "Indeterminate" then
+    return { text = progress_busy, color = p.warn }
+  end
+  if type(progress) ~= "table" then
+    return nil
+  end
+  if progress.Percentage then
+    local glyph, pct = progress_slice(progress.Percentage)
+    return { text = glyph .. " " .. math.floor(pct) .. "%", color = p.accent }
+  end
+  if progress.Error then
+    return { text = (progress_slice(progress.Error)), color = p.err }
+  end
+  return nil
+end
+
 local function remote_host(cmd)
   cmd = trim(cmd)
   if not cmd:match("^ssh%s") and not cmd:match("^mosh%s") then
@@ -765,8 +809,12 @@ wezterm.on("format-tab-title", function(tab, _tabs, panes, _config, hover, max_w
     title = "shell"
   end
 
-  -- Small marks after the title: zoom, pane count, command result, new output.
+  -- Small marks after the title: progress, zoom, pane count, command result, new output.
   local marks = {}
+  local progress = progress_mark(pane.progress, p)
+  if progress then
+    table.insert(marks, progress)
+  end
   if pane.is_zoomed then
     table.insert(marks, { text = icons.zoom, color = p.muted })
   end

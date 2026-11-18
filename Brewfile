@@ -50,7 +50,7 @@ brew "kubecolor"
 brew "xan"
 
 # Terminal and fonts.
-cask "wezterm"
+cask "wezterm@nightly"
 cask "font-libertinus"
 cask "font-jetbrains-mono-nerd-font"
 cask "font-iosevka-term-nerd-font"

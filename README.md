@@ -59,6 +59,7 @@ Defaults:
 - variants: `vague` (one dark palette, no light variant)
 - font fallback: JetBrains Mono Nerd Font, IosevkaTerm Nerd Font, Symbols Nerd Font Mono, Menlo
 - 90% opacity, macOS blur, resize-only decorations
+- needs the WezTerm nightly build (`wezterm@nightly`); the config uses options that the 20240203 stable build does not have
 - status: workspace/key table/leader on the left, cwd/process/time on the right
 - inactive panes are dimmed
 

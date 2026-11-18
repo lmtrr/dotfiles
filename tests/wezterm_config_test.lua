@@ -30,6 +30,7 @@ package.preload["wezterm"] = function()
     nerdfonts = setmetatable({}, { __index = function() return "x" end }),
     on = function(event, handler) event_handlers[event] = handler end,
     strftime = function() return "" end,
+    column_width = function(s) return #s end,
     font_with_fallback = function(fonts) return fonts end,
     config_builder = nil,
   }
@@ -102,3 +103,43 @@ assert(launch_menu_cwd("Dotfiles") == repo_root, checkout_hint)
 assert(launch_menu_cwd("Neovim Config") == repo_root .. "/nvim", checkout_hint)
 
 assert(config.window_decorations == "RESIZE")
+
+local format_tab_title = assert(event_handlers["format-tab-title"], "format-tab-title handler is missing")
+
+local function title_cells(progress)
+  local tab = {
+    tab_index = 0,
+    tab_title = "",
+    is_active = true,
+    active_pane = { foreground_process_name = "/bin/zsh", user_vars = {}, progress = progress },
+  }
+  return format_tab_title(tab, { tab }, { tab.active_pane }, config, false, 32)
+end
+
+local function text_color(cells, pattern)
+  local color = nil
+  for _, cell in ipairs(cells) do
+    if cell.Foreground then
+      color = cell.Foreground.Color
+    end
+    if cell.Text and cell.Text:find(pattern) then
+      return color
+    end
+  end
+  return nil
+end
+
+local function count_marks(cells)
+  local count = 0
+  for _, cell in ipairs(cells) do
+    if cell.Text and cell.Text:match("^ x") then
+      count = count + 1
+    end
+  end
+  return count
+end
+
+assert(text_color(title_cells({ Percentage = 42 }), "42%%") == "#7aa2f7", "progress percentage must use the accent color")
+assert(text_color(title_cells({ Error = 50 }), "^ x$") == "#f7768e", "progress error must use the error color")
+assert(text_color(title_cells("Indeterminate"), "^ x$") == "#e0af68", "indeterminate progress must use the warn color")
+assert(count_marks(title_cells("None")) == 0, "no progress must show no mark")
